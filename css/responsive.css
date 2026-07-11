@@ -1,0 +1,106 @@
+/* ══════════════════════════════════════════════════════════
+   AT SERVIS SHOE — Billing System
+   responsive.css — All @media rules: black & white thermal
+   print styles, desktop login override, mobile-first base
+   overrides, tablet (600px+) and desktop (900px+) breakpoints,
+   and the mobile/desktop bottom-nav vs top-nav switch.
+   ══════════════════════════════════════════════════════════ */
+
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{width:80mm;margin:0;font-family:'Courier New',Courier,monospace;font-size:11px;overflow:visible;background:var(--card)!important;color:#000!important;}
+  .login-screen,.rcpt-overlay,.modal-bg,.toast,header,.page,.rcpt-actions{display:none!important;}
+  .print-receipt{display:block!important;}
+  /* Force all backgrounds to white, all text to black for B&W printers */
+  .rcpt-head{background:var(--card)!important;color:#000!important;padding:12px 14px;text-align:center;border-bottom:3px solid #000;}
+  .rcpt-logo{font-size:16px!important;letter-spacing:4px;font-weight:bold;}
+  .rcpt-logo span{color:#fff!important;}
+  .rcpt-tagline{color:#000!important;font-size:12px!important;font-weight:700!important;line-height:2!important;}
+  .rcpt-body{padding:10px 14px;}
+  .r-div{border-top:1px dashed #000!important;margin:7px 0;}
+  .r-lbl{color:#555!important;font-size:9px;}
+  .r-cust{font-size:13px;font-weight:bold;}
+  .r-item-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+  .r-tot-row{color:#555!important;font-size:10px;}
+  .r-grand-row{font-size:15px;font-weight:bold;border-top:1px solid #000;padding-top:5px;margin-top:5px;}
+  .r-pay-line{color:#555!important;font-size:9px;}
+  .rcpt-pay-info{border:1px solid #ccc!important;background:#f9f9f9!important;padding:8px 10px;margin-top:8px;}
+  .rcpt-pay-info *{color:#000!important;}
+  .rpi-ttl{border-bottom:1px dashed #ccc!important;padding-bottom:5px;margin-bottom:6px;font-size:8px;letter-spacing:2px;}
+  .rpi-jc,.rpi-ep,.rpi-bk{color:#000!important;font-weight:bold;}
+  .rcpt-footer{border-top:1px dashed #000!important;padding:10px 14px;text-align:center;font-size:11px;color:#000!important;font-weight:600;line-height:1.9;}
+  .rcpt-designer{font-size:8px;color:#888!important;text-align:center;padding-bottom:8px;}
+  .rcpt-designer b{color:#000!important;}
+}
+.print-receipt{display:none;}
+
+/* ── DESKTOP LOGIN OVERRIDE ── */
+@media(min-width:768px){
+  .login-screen.show{display:flex;align-items:center;justify-content:center;}
+}
+
+/* ══ MOBILE BASE (default) ══ */
+.product-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+.p-emoji{font-size:24px;margin-bottom:4px;}
+.p-name{font-size:11px;}
+.p-price{font-size:11px;}
+.sales-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+.kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+.kpi{padding:10px 12px;}
+.kpi-val{font-size:17px;}
+.inner{padding:12px 14px;}
+.inner-ttl{font-size:18px;}
+.inner-hdr{margin-bottom:12px;}
+.f-row{grid-template-columns:1fr;}
+.modal-card{margin:8px;}
+.data-tbl th,.data-tbl td{padding:7px 9px;font-size:11px;}
+
+/* ══ TABLET 600px+ ══ */
+@media(min-width:600px){
+  .product-grid{grid-template-columns:repeat(3,1fr);gap:10px;}
+  .kpi-grid{grid-template-columns:repeat(3,1fr);}
+  .p-emoji{font-size:28px;margin-bottom:5px;}
+  .p-name{font-size:12px;}
+}
+
+/* ══ DESKTOP 900px+ ══ */
+@media(min-width:900px){
+  .billing-layout{flex-direction:row;height:100%;}
+  .catalogue-panel{flex:1;overflow-y:auto;height:100%;max-height:100%;padding:20px 24px;}
+  .cat-title{font-size:20px;}
+  .product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+  .p-emoji{font-size:30px;margin-bottom:6px;}
+  .p-name{font-size:13px;}
+  .p-price{font-size:12px;}
+  .cart-toggle-bar{display:none!important;}
+  .cart-drawer{max-height:none!important;overflow-y:auto!important;width:360px;flex-shrink:0;display:flex!important;flex-direction:column;height:100%;}
+  .cart-wrap-inner{flex:1;display:flex;flex-direction:column;padding:0;}
+  .returns-layout{flex-direction:row;height:100%;}
+  .ret-form{width:400px;flex-shrink:0;overflow-y:auto;max-height:100%;border-bottom:none;border-right:1px solid var(--border);}
+  .ret-hist{flex:1;overflow-y:auto;max-height:100%;padding:20px 24px;}
+  .sales-grid{grid-template-columns:1fr 1fr;}
+  .kpi-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;}
+  .kpi{padding:14px 16px;}
+  .kpi-val{font-size:20px;}
+  .inner{padding:22px 32px;}
+  .inner-ttl{font-size:22px;}
+  .inner-hdr{margin-bottom:18px;}
+  .f-row{grid-template-columns:1fr 1fr;}
+  .data-tbl th,.data-tbl td{padding:10px 14px;font-size:12px;}
+  .header-date{display:block;}
+  .logo-sub{display:block;}
+  .user-role{display:block;}
+  /* Hide bottom nav on desktop */
+  .bottom-nav{display:none!important;}
+  /* Show top nav tabs on desktop */
+  .nav-tabs{display:flex!important;}
+}
+
+
+/* On mobile: show bottom nav, hide top tabs, add bottom padding to pages */
+@media(max-width:899px){
+  .bottom-nav{display:block;}
+  .nav-tabs{display:none!important;}
+  .page.active{padding-bottom:68px;}
+  .billing-layout{padding-bottom:0;}
+}
