@@ -31,7 +31,7 @@ async function doLogin(){
   if(now<loginLockedUntil){
     const secs=Math.ceil((loginLockedUntil-now)/1000);
     document.getElementById('loginError').textContent='Too many attempts. Try again in '+secs+'s';
-    document.getElementById('loginError').style.display='block';
+    document.getElementById('loginError').classList.add('show');
     return;
   }
   const u=(document.getElementById('loginUser').value||'').trim().toLowerCase();
@@ -41,7 +41,7 @@ async function doLogin(){
   if(!acc){
     loginAttempts++;
     err.textContent='❌ Invalid username or password ('+loginAttempts+'/5 attempts)';
-    err.style.display='block';
+    err.classList.add('show');
     document.getElementById('loginPass').value='';
     return;
   }
@@ -56,18 +56,34 @@ async function doLogin(){
     }else{
       err.textContent='❌ Invalid username or password ('+loginAttempts+'/5 attempts)';
     }
-    err.style.display='block';
+    err.classList.add('show');
     document.getElementById('loginPass').value='';
     return;
   }
   loginAttempts=0;loginLockedUntil=0;
-  err.style.display='none';
+  err.classList.remove('show');
   // Store the real access token — every REST call (sbGet/sbInsertOne/etc)
   // uses this so auth.uid() resolves correctly for RLS.
   sbSessionToken=data.session.access_token;
   sessionStorage.setItem('sc_sb_session',JSON.stringify(data.session));
   currentUser={username:u,role:acc.role,displayName:acc.displayName,roleLabel:acc.roleLabel};
   applyUserSession();
+  // Before login, load() ran once already while logged out — RLS blocked
+  // it, so PRODUCTS/SALES/etc still hold DEFAULT_PRODUCTS/empty fallbacks.
+  // Re-fetch now that we have a valid session, then re-render whatever
+  // page is currently showing so real data appears immediately (no
+  // manual refresh needed).
+  await load();
+  newBillNo();renderFilters();renderProducts();
+  const activePage=document.querySelector('.page.active');
+  if(activePage){
+    if(activePage.id==='page-admin'){renderAdminCards();renderAdminTable();}
+    if(activePage.id==='page-sales')renderSalesPage();
+    if(activePage.id==='page-bills')renderBillsGrid();
+    if(activePage.id==='page-returns')renderReturnsPage();
+    if(activePage.id==='page-expenses')renderExpensesPage();
+    if(activePage.id==='page-records')renderRecordsPage();
+  }
 }
 
 async function doLogout(){
@@ -77,7 +93,7 @@ async function doLogout(){
   try{await sbClient.auth.signOut();}catch(e){}
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
-  document.getElementById('loginError').style.display='none';
+  document.getElementById('loginError').classList.remove('show');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-billing').classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
@@ -118,8 +134,12 @@ function applyUserSession(){
   if(importBtn)importBtn.style.display=admin?'':'none';
   if(addBtn)addBtn.style.display=admin?'':'none';
   if(exportBtn)exportBtn.style.display=admin?'':'none';
-  // Re-render admin table so edit/delete buttons respect role
-  renderAdminCards();renderAdminTable();
+  // NOTE: admin table/cards are intentionally NOT re-rendered here.
+  // This function can run during session restore in init(), BEFORE load()
+  // has fetched real Supabase data — rendering here used to show stale
+  // DEFAULT_PRODUCTS until the person manually refreshed. init() and
+  // doLogin() are responsible for rendering the current page once real
+  // data has actually loaded.
 }
 
 // ── NAV ──
@@ -131,6 +151,8 @@ async function switchPage(page,tab,bnKey){
   document.getElementById('page-'+page).classList.add('active');
   // ── FIX 17: Update browser tab title ──
   document.title=(PAGE_TITLES[page]||page)+' — AT SERVIS SHOE';
+  const bc=document.getElementById('breadcrumb');
+  if(bc)bc.textContent='AT Servis Shoe > Software > '+(PAGE_TITLES[page]||page);
   // Highlight top tab (desktop) — tab may be null when called from bottom nav
   if(tab)tab.classList.add('active');
   else{const t=document.getElementById('tab-'+page);if(t)t.classList.add('active');}
@@ -192,6 +214,8 @@ async function init(){
     if(ap.id==='page-admin'){renderAdminCards();renderAdminTable();}
     if(ap.id==='page-returns')renderReturnsPage();
     if(ap.id==='page-expenses')renderExpensesPage();
+    if(ap.id==='page-bills')renderBillsGrid();
+    if(ap.id==='page-records')renderRecordsPage();
   }
 }
 async function newBillNo(){

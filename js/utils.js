@@ -31,7 +31,7 @@ let PRODUCTS=[],SALES=[],RETURNS=[],EXPENSES=[];
 let cart=[],discountAmt=0,payMethod="cash",billCount=1000,activeFilter="All";
 let editingId=null,selectedEmoji="👟";
 let returnType='customer',returnHistoryFilter='all';
-let crItems=[],dfItems=[];
+let crItems=[],dfItems=[],crDiscountRatio=1;
 let cartOpen=false;
 
 // ── SUPABASE CONFIG ──
@@ -50,7 +50,33 @@ function currentAuthHeaders(){
   const token=sbSessionToken||SUPA_KEY; // fall back to anon key if not logged in yet
   return{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+token};
 }
-let sbSessionToken=null; // set on login, cleared on logout — see auth.js
+let sbSessionToken=null; // kept in sync automatically by onAuthStateChange below
+let sessionExpiredHandled=false; // guards against showing the "session expired" toast more than once
+
+// Supabase's client refreshes the access token in the background before it
+// expires. This listener keeps sbSessionToken in sync with that refresh, and
+// tells the person clearly if their session is lost — instead of requests
+// just silently returning empty results, which is what used to happen.
+sbClient.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){
+    sbSessionToken=session?session.access_token:null;
+    sessionExpiredHandled=false;
+  }else if(event==='SIGNED_OUT'){
+    sbSessionToken=null;
+  }
+});
+
+// Call this whenever a Supabase request unexpectedly returns nothing/fails
+// AFTER the person has already logged in — most likely cause is the login
+// session has become invalid (not a network/offline problem), so tell them
+// clearly instead of silently falling back to local/offline mode.
+function handlePossibleSessionExpiry(){
+  if(!currentUser||sessionExpiredHandled)return;
+  sessionExpiredHandled=true;
+  showSyncStatus('session-expired');
+  showToast('⚠️ Your session expired — please log in again');
+  setTimeout(()=>{if(typeof doLogout==='function')doLogout();},1500);
+}
 
 // ── Supabase helpers ──
 // products table: columns are id, data (jsonb), sizes (jsonb), created_at
@@ -116,6 +142,7 @@ async function sbGet(table){
       const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=*&order=id.asc',{
         headers:{...currentAuthHeaders(),'Range':from+'-'+to,'Range-Unit':'items'}
       });
+      if(r.status===401||r.status===403){handlePossibleSessionExpiry();return null;}
       const rows=await r.json();
       if(!Array.isArray(rows))break;
       all=all.concat(rows);
@@ -138,6 +165,7 @@ async function sbInsertOne(table,item){
     const body=table==='products'?(()=>{const{sizes,...rest}=item;return{data:rest,sizes:sizes||[]};})()
       :{data:item};
     const r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:{...currentAuthHeaders(),'Prefer':'return=representation'},body:JSON.stringify(body)});
+    if(r.status===401||r.status===403){handlePossibleSessionExpiry();return null;}
     if(!r.ok)throw new Error('HTTP '+r.status);
     const res=await r.json();
     const row=Array.isArray(res)?res[0]:res;
@@ -156,6 +184,7 @@ async function sbUpdateOne(table,sid,item){
     const body=table==='products'?(()=>{const{sizes,...rest}=item;return{data:rest,sizes:sizes||[]};})()
       :{data:item};
     const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+sid,{method:'PATCH',headers:{...currentAuthHeaders(),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    if(r.status===401||r.status===403){handlePossibleSessionExpiry();return;}
     if(!r.ok)throw new Error('HTTP '+r.status);
   }catch(e){
     console.warn('sbUpdateOne failed, queuing:',table,e.message);
@@ -168,6 +197,7 @@ async function sbDeleteOne(table,sid){
   if(!dbOnline){waqPush({type:'delete',table,sid});return;}
   try{
     const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+sid,{method:'DELETE',headers:currentAuthHeaders()});
+    if(r.status===401||r.status===403){handlePossibleSessionExpiry();return;}
     if(!r.ok)throw new Error('HTTP '+r.status);
   }catch(e){
     console.warn('sbDeleteOne failed, queuing:',table,e.message);
@@ -212,13 +242,14 @@ function showSyncStatus(state){
   if(!el){
     el=document.createElement('div');
     el.id='syncStatus';
-    el.style.cssText='position:fixed;bottom:10px;left:10px;z-index:999;font-family:DM Mono,monospace;font-size:10px;padding:4px 10px;border-radius:20px;transition:all 0.3s;pointer-events:none;';
+    el.style.cssText='position:fixed;bottom:10px;left:10px;z-index:999;font-family:DM Mono,monospace;font-size:10px;padding:4px 10px;border-radius:0;transition:all 0.3s;pointer-events:none;';
     document.body.appendChild(el);
   }
-  if(state==='loading'){el.style.background='rgba(26,22,18,0.8)';el.style.color='#C9973A';el.textContent='⏳ Syncing...';}
-  else if(state==='online'){el.style.background='rgba(46,125,82,0.15)';el.style.color='#2E7D52';el.textContent='☁ Synced';setTimeout(()=>el.style.opacity='0',3000);el.style.opacity='1';}
-  else if(state==='offline'){el.style.background='rgba(168,66,50,0.15)';el.style.color='#A84232';el.textContent='⚠ Offline — saving locally';el.style.opacity='1';}
-  else if(state==='saving'){el.style.opacity='1';el.style.background='rgba(26,22,18,0.8)';el.style.color='#C9973A';el.textContent='💾 Saving...';}
+  if(state==='loading'){el.style.background='rgba(76,95,213,0.15)';el.style.color='#7C8CEE';el.textContent='⏳ Syncing...';}
+  else if(state==='online'){el.style.background='rgba(31,169,122,0.15)';el.style.color='#1FA97A';el.textContent='☁ Synced';setTimeout(()=>el.style.opacity='0',3000);el.style.opacity='1';}
+  else if(state==='offline'){el.style.background='rgba(214,69,93,0.15)';el.style.color='#D6455D';el.textContent='⚠ Offline — saving locally';el.style.opacity='1';}
+  else if(state==='saving'){el.style.opacity='1';el.style.background='rgba(76,95,213,0.15)';el.style.color='#7C8CEE';el.textContent='💾 Saving...';}
+  else if(state==='session-expired'){el.style.background='rgba(230,82,138,0.18)';el.style.color='#E6528A';el.textContent='🔒 Session expired — please log in again';el.style.opacity='1';}
 }
 
 // localStorage cache helpers — called after every in-memory change

@@ -25,9 +25,27 @@ function renderKpiCards(){
   const monthExp=EXPENSES.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,e)=>s+e.amount,0);
   const totalExp=EXPENSES.reduce((s,e)=>s+e.amount,0);
   const trueNetProfit=totalRev-SALES.reduce((s,x)=>s+x.totalCost,0)-totalExp;
-  document.getElementById('salesKpiCards').innerHTML=`
-    <div class="kpi" style="border-top:3px solid var(--gold);"><div class="kpi-label">📅 Today's Revenue</div><div class="kpi-val gold">${rs(todayRev)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;">${todayBills} bill${todayBills!==1?'s':''} today</div></div>
-    <div class="kpi" style="border-top:3px solid var(--green);"><div class="kpi-label">📅 Today's Profit</div><div class="kpi-val ${todayProfit>=0?'green':'red'}">${rs(todayProfit)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;">${now.toLocaleDateString('en-PK',{weekday:'short',day:'numeric',month:'short'})}</div></div>
+  // Optional custom date range (from the date-range picker on the Sales page)
+  const fromEl=document.getElementById('kpiRangeFrom'),toEl=document.getElementById('kpiRangeTo');
+  let rangeCardHtml='';
+  if(fromEl&&toEl&&fromEl.value&&toEl.value){
+    const from=new Date(fromEl.value+'T00:00:00'),to=new Date(toEl.value+'T23:59:59');
+    const inRange=SALES.filter(x=>{const d=new Date(x.date);return d>=from&&d<=to;});
+    const rangeRev=inRange.reduce((s,x)=>s+x.total,0);
+    const rangeProfit=inRange.reduce((s,x)=>s+x.profit,0);
+    rangeCardHtml=`
+    <div class="kpi s-full">
+      <div class="kpi-label">📅 ${fromEl.value} to ${toEl.value}</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:4px;">
+        <div><div class="kpi-val gold">${rs(rangeRev)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Revenue</div></div>
+        <div><div class="kpi-val ${rangeProfit>=0?'green':'red'}">${rs(rangeProfit)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Profit</div></div>
+        <div><div class="kpi-val">${inRange.length}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Bills</div></div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('salesKpiCards').innerHTML=rangeCardHtml+`
+    <div class="kpi"><div class="kpi-label">📅 Today's Revenue</div><div class="kpi-val gold">${rs(todayRev)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;">${todayBills} bill${todayBills!==1?'s':''} today</div></div>
+    <div class="kpi"><div class="kpi-label">📅 Today's Profit</div><div class="kpi-val ${todayProfit>=0?'green':'red'}">${rs(todayProfit)}</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;">${now.toLocaleDateString('en-PK',{weekday:'short',day:'numeric',month:'short'})}</div></div>
     <div class="kpi"><div class="kpi-label">Total Revenue</div><div class="kpi-val gold">${rs(totalRev)}</div></div>
     <div class="kpi"><div class="kpi-label">Total Profit</div><div class="kpi-val ${totalProfit>=0?'green':'red'}">${rs(totalProfit)}</div></div>
     <div class="kpi"><div class="kpi-label">Total Bills</div><div class="kpi-val">${SALES.length}</div></div>
@@ -102,7 +120,7 @@ function renderSalesTable(){
     return `<tr>
       <td class="td-mono" style="font-size:10px;">#SC-${s.billNo}</td>
       <td style="font-family:'DM Mono',monospace;font-size:10px;">${d.toLocaleDateString('en-PK')}<br><span style="color:var(--muted);">${d.toLocaleTimeString()}</span></td>
-      <td><b style="font-family:'Poppins',sans-serif;font-size:13px;">${s.customer}</b>${s.phone?'<br><span style="font-size:10px;color:var(--muted);">'+s.phone+'</span>':''}</td>
+      <td><b style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;">${s.customer}</b>${s.phone?'<br><span style="font-size:10px;color:var(--muted);">'+s.phone+'</span>':''}</td>
       <td style="font-size:12px;">${s.items.map(i=>`${i.emoji}${i.qty}×`).join(' ')}</td>
       <td class="td-mono">${rs(s.total)}</td>
       <td class="td-mono" style="color:var(--muted);">${rs(s.totalCost)}</td>
@@ -161,7 +179,7 @@ function lookupBill(){
   if(!sale){
     resultEl.style.background='#FAEAE6';resultEl.style.borderColor='var(--rust)';
     blrContent.innerHTML=`<span style="color:var(--rust);font-family:'DM Mono',monospace;font-size:11px;">Bill #SC-${num||'?'} not found.</span>`;
-    resultEl.classList.add('show');crItems=[];renderCrItemsList();return;
+    resultEl.classList.add('show');crItems=[];crDiscountRatio=1;renderCrItemsList();return;
   }
   const d=new Date(sale.date);
   resultEl.style.background='var(--green-light)';resultEl.style.borderColor='var(--green)';
@@ -169,6 +187,12 @@ function lookupBill(){
   resultEl.classList.add('show');
   document.getElementById('cr-customer').value=sale.customer;
   crItems=sale.items.map(i=>({...i,maxQty:i.qty,qty:0}));
+  // Discount was applied at the bill level (not per item), so a returned
+  // item must refund the price ACTUALLY PAID, not the full catalogue
+  // price. Work out what fraction of the bill's subtotal the customer
+  // really paid, and apply that same ratio to any items being returned.
+  const billSubtotal=sale.subtotal||sale.items.reduce((s,i)=>s+i.price*i.qty,0);
+  crDiscountRatio=billSubtotal>0?(sale.total/billSubtotal):1;
   renderCrItemsList();updateCrRefund();
 }
 function renderCrItemsList(){
@@ -189,7 +213,10 @@ function addManualReturnItem(type){
   document.getElementById(selId).value='';
   if(type==='customer'){
     if(crItems.find(i=>i.id===id)){showToast('Already in list');return;}
-    crItems.push({...prod,maxQty:99,qty:1});renderCrItemsList();updateCrRefund();
+    // manualNoDiscount: this item wasn't part of a looked-up bill, so it
+    // should always refund at full catalogue price, even if a bill with
+    // a discount was looked up earlier in this same return session.
+    crItems.push({...prod,maxQty:99,qty:1,manualNoDiscount:true});renderCrItemsList();updateCrRefund();
   }else{
     if(dfItems.find(i=>i.id===id)){showToast('Already in list');return;}
     dfItems.push({...prod,qty:1});renderDfItemsList();updateDfSummary();
@@ -197,7 +224,7 @@ function addManualReturnItem(type){
 }
 function updateCrRefund(){
   const active=crItems.filter(i=>i.qty>0);
-  const refund=active.reduce((s,i)=>s+i.price*i.qty,0);
+  const refund=active.reduce((s,i)=>s+i.price*i.qty*(i.manualNoDiscount?1:crDiscountRatio),0);
   document.getElementById('cr-item-count').textContent=active.length;
   document.getElementById('cr-total-refund').textContent=rs(refund);
 }
@@ -207,7 +234,11 @@ function submitCustomerReturn(){
   const customer=document.getElementById('cr-customer').value.trim()||'Walk-in Customer';
   const reason=document.getElementById('cr-reason').value;
   if(!reason){showToast('Select a reason for return');return;}
-  const refund=active.reduce((s,i)=>s+i.price*i.qty,0);
+  // Refund the price actually paid (after the original bill's discount),
+  // not the full catalogue price — see lookupBill() for how the ratio
+  // is derived from the linked bill. Manually-added items (no bill
+  // reference) always refund at full catalogue price.
+  const refund=active.reduce((s,i)=>s+i.price*i.qty*(i.manualNoDiscount?1:crDiscountRatio),0);
   const rec={rid:nextRetId(),type:'customer',date:new Date().toISOString(),customer,reason,
     notes:document.getElementById('cr-notes').value.trim(),billNo:document.getElementById('cr-billno').value.trim(),
     items:active.map(i=>({id:i.id,name:i.name,brand:i.brand,emoji:i.emoji,price:i.price,cost:i.cost||0,qty:i.qty})),refund,loss:0};
@@ -216,7 +247,7 @@ function submitCustomerReturn(){
   cacheProducts();
   if(dbOnline){sbInsertOne('returns',rec).then(saved=>{if(saved)rec._sid=saved._sid;});}
   RETURNS.push(rec);cacheReturns();
-  crItems=[];['cr-customer','cr-billno','cr-notes'].forEach(id=>document.getElementById(id).value='');
+  crItems=[];crDiscountRatio=1;['cr-customer','cr-billno','cr-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cr-reason').value='';document.getElementById('bill-lookup-result').classList.remove('show');
   renderCrItemsList();updateCrRefund();renderReturnKpiCards();renderReturnHistory();renderProducts();
   showToast(`✓ Return processed — ${rs(refund)} refund`);
@@ -292,7 +323,7 @@ function renderReturnHistory(){
       <td class="td-mono" style="font-size:10px;">#RET-${r.rid}</td>
       <td style="font-family:'DM Mono',monospace;font-size:10px;">${d.toLocaleDateString('en-PK')}<br><span style="color:var(--muted);">${d.toLocaleTimeString()}</span></td>
       <td>${isC?`<span class="pill pill-cr">CUSTOMER</span>`:`<span class="pill pill-df">DEFECTIVE</span>`}</td>
-      <td><b style="font-size:13px;">${isC?(r.customer||'—'):(r.company||'—')}</b>${r.billNo?`<br><span style="font-family:'DM Mono',monospace;font-size:9px;background:rgba(252,219,50,0.15);color:var(--gold);padding:1px 5px;border-radius:3px;">Bill #SC-${r.billNo}</span>`:'<br><span style="font-size:9px;color:var(--muted);">No bill linked</span>'}</td>
+      <td><b style="font-size:13px;">${isC?(r.customer||'—'):(r.company||'—')}</b>${r.billNo?`<br><span style="font-family:'DM Mono',monospace;font-size:9px;background:rgba(76,95,213,0.15);color:var(--gold);padding:1px 5px;border-radius:0;">Bill #SC-${r.billNo}</span>`:'<br><span style="font-size:9px;color:var(--muted);">No bill linked</span>'}</td>
       <td style="font-size:12px;">${r.items.map(i=>`${i.emoji}${i.qty}×`).join(' ')}</td>
       <td style="font-size:10px;color:var(--muted);">${isC?(r.reason||'—'):(r.defect||'—')}</td>
       <td>${isC?`<span style="color:var(--rust);font-family:'DM Mono',monospace;">${rs(r.refund)}</span>`:`<span style="color:var(--amber);font-family:'DM Mono',monospace;">${rs(r.loss)}</span>`}</td>
@@ -452,9 +483,9 @@ function renderBillsGrid(){
     const d=new Date(s.date);
     const isToday=d.toDateString()===new Date().toDateString();
     const dateStr=isToday?'Today · '+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'});
-    const itemLines=s.items.map(i=>'<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);"><span>'+i.emoji+' '+i.name+(i.size?' <span style="font-size:9px;background:var(--gold-light);color:var(--amber);padding:1px 4px;border-radius:3px;margin-left:3px;">Sz '+i.size+'</span>':'')+'<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--muted);margin-left:4px;">×'+i.qty+'</span></span><span style="font-family:\'DM Mono\',monospace;color:var(--amber);flex-shrink:0;">'+rs(i.price*i.qty)+'</span></div>').join('');
+    const itemLines=s.items.map(i=>'<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);"><span>'+i.emoji+' '+i.name+(i.size?' <span style="font-size:9px;background:var(--gold-light);color:var(--amber);padding:1px 4px;border-radius:0;margin-left:3px;">Sz '+i.size+'</span>':'')+'<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--muted);margin-left:4px;">×'+i.qty+'</span></span><span style="font-family:\'DM Mono\',monospace;color:var(--amber);flex-shrink:0;">'+rs(i.price*i.qty)+'</span></div>').join('');
     const pc=pColor[s.payMethod]||'var(--amber)';
-    return '<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);">'
+    return '<div style="background:var(--card);border:1.5px solid var(--border);border-radius:0;overflow:hidden;box-shadow:var(--shadow-sm);">'
       +'<div style="background:var(--ink);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">'
         +'<span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--gold);font-weight:600;">#SC-'+s.billNo+'</span>'
         +'<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:rgba(255,255,255,0.35);">'+dateStr+'</span>'
@@ -468,7 +499,7 @@ function renderBillsGrid(){
             +'<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:'+pc+';margin-top:1px;">'+( pName[s.payMethod]||s.payMethod)+'</div>'
           +'</div>'
         +'</div>'
-        +'<div style="background:var(--bg);border-radius:8px;padding:6px 8px;margin-bottom:8px;">'+itemLines+'</div>'
+        +'<div style="background:var(--bg);border-radius:0;padding:6px 8px;margin-bottom:8px;">'+itemLines+'</div>'
         +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);">'
           +s.items.reduce((n,i)=>n+i.qty,0)+' pairs &nbsp;·&nbsp; profit: <b style="color:'+(s.profit>=0?'var(--green)':'var(--rust)')+';">'+rs(s.profit)+'</b>'
         +'</div>'
@@ -518,11 +549,11 @@ let recordMode='monthly';
 function setRecordMode(mode){
   recordMode=mode;
   document.getElementById('recMode-monthly').style.cssText=mode==='monthly'
-    ?'flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gold-light);color:var(--amber);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;font-weight:600;'
-    :'flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;';
+    ?'flex:1;padding:10px;border-radius:0;border:1.5px solid var(--gold);background:var(--gold-light);color:var(--amber);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;font-weight:600;'
+    :'flex:1;padding:10px;border-radius:0;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;';
   document.getElementById('recMode-yearly').style.cssText=mode==='yearly'
-    ?'flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--gold);background:var(--gold-light);color:var(--amber);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;font-weight:600;'
-    :'flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;';
+    ?'flex:1;padding:10px;border-radius:0;border:1.5px solid var(--gold);background:var(--gold-light);color:var(--amber);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;font-weight:600;'
+    :'flex:1;padding:10px;border-radius:0;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;';
   document.getElementById('recMonth').style.display=mode==='monthly'?'':'none';
   renderRecordPreview();
 }
@@ -610,7 +641,7 @@ function renderRecordPreview(){
   const margin=d.revenue>0?((d.netProfit/d.revenue)*100).toFixed(1):0;
   const payLabels={'cash':'💵 Cash','easypaisa':'📲 EasyPaisa','jazzcash':'🎵 JazzCash','bank':'🏦 Bank'};
 
-  let html='<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">';
+  let html='<div style="background:var(--card);border:1.5px solid var(--border);border-radius:0;padding:24px;box-shadow:var(--shadow-sm);">';
 
   // Header
   html+='<div style="text-align:center;padding-bottom:18px;margin-bottom:20px;border-bottom:2px solid var(--gold);">';
@@ -632,7 +663,7 @@ function renderRecordPreview(){
 
   // Best period
   if(d.bestPeriod){
-    html+='<div style="background:var(--gold-light);border:1px solid #e8d5a8;border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">';
+    html+='<div style="background:var(--gold-light);border:1px solid #e8d5a8;border-radius:0;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">';
     html+='<span style="font-size:20px;">🏆</span><div><div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--amber);letter-spacing:1px;">BEST PERFORMING '+(recordMode==='monthly'?'DAY':'MONTH')+'</div>';
     html+='<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:700;">'+d.bestPeriod.label+' — '+rs(d.bestPeriod.value)+'</div></div></div>';
   }
@@ -710,21 +741,21 @@ function printRecordReport(){
   body+='<div style="font-size:10px;color:#aaa;margin-top:4px;">Generated on '+now.toLocaleDateString('en-PK')+' at '+now.toLocaleTimeString()+'</div>';
   body+='</div>';
 
-  function kpiBox(label,val,color){return '<div style="border:1px solid #ddd;border-radius:8px;padding:12px 14px;"><div style="font-size:9px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">'+label+'</div><div style="font-size:20px;font-weight:bold;color:'+(color||'#141D38')+';">'+val+'</div></div>';}
+  function kpiBox(label,val,color){return '<div style="border:1px solid #ddd;border-radius:0;padding:12px 14px;"><div style="font-size:9px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">'+label+'</div><div style="font-size:20px;font-weight:bold;color:'+(color||'#141D38')+';">'+val+'</div></div>';}
 
   body+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">';
   body+=kpiBox('Total Revenue',rs(d.revenue),'#9A6F00');
   body+=kpiBox('Cost of Goods',rs(d.cogs));
-  body+=kpiBox('Gross Profit',rs(d.grossProfit),d.grossProfit>=0?'#2E7D52':'#A84232');
-  body+=kpiBox('Total Expenses',rs(d.totalExpenses),'#A84232');
-  body+=kpiBox('Net Profit',rs(d.netProfit)+' ('+margin+'%)',d.netProfit>=0?'#2E7D52':'#A84232');
+  body+=kpiBox('Gross Profit',rs(d.grossProfit),d.grossProfit>=0?'#1FA97A':'#D6455D');
+  body+=kpiBox('Total Expenses',rs(d.totalExpenses),'#D6455D');
+  body+=kpiBox('Net Profit',rs(d.netProfit)+' ('+margin+'%)',d.netProfit>=0?'#1FA97A':'#D6455D');
   body+=kpiBox('Total Bills',d.totalBills);
   body+=kpiBox('Pairs Sold',d.totalUnits);
   body+=kpiBox('Avg Bill Value',rs(d.avgBillValue),'#9A6F00');
   body+='</div>';
 
   if(d.bestPeriod){
-    body+='<div style="background:#FFF8E7;border:1px solid #e8d5a8;border-radius:8px;padding:12px 16px;margin-bottom:20px;">';
+    body+='<div style="background:#FFF8E7;border:1px solid #e8d5a8;border-radius:0;padding:12px 16px;margin-bottom:20px;">';
     body+='<b>🏆 Best Performing '+(recordMode==='monthly'?'Day':'Month')+':</b> '+d.bestPeriod.label+' — '+rs(d.bestPeriod.value);
     body+='</div>';
   }
@@ -734,14 +765,14 @@ function printRecordReport(){
   body+=Object.entries(d.payBreak).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<tr><td style="padding:4px 0;">'+( payLabels[k]||k)+'</td><td style="text-align:right;font-family:monospace;">'+rs(v)+'</td></tr>').join('');
   body+='</table></div>';
   body+='<div><h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Expense Breakdown</h3><table style="width:100%;font-size:11px;margin-top:8px;">';
-  body+=Object.entries(d.expCatMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<tr><td style="padding:4px 0;">'+k+'</td><td style="text-align:right;font-family:monospace;color:#A84232;">'+rs(v)+'</td></tr>').join('');
+  body+=Object.entries(d.expCatMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<tr><td style="padding:4px 0;">'+k+'</td><td style="text-align:right;font-family:monospace;color:#D6455D;">'+rs(v)+'</td></tr>').join('');
   body+='</table></div>';
   body+='</div>';
 
   body+='<h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Top Selling Articles</h3>';
   body+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;margin-bottom:20px;">';
   body+='<thead><tr style="background:#0D1428;color:#fff;"><th style="padding:8px;text-align:left;">Article</th><th style="padding:8px;text-align:left;">Brand</th><th style="padding:8px;text-align:right;">Qty</th><th style="padding:8px;text-align:right;">Revenue</th><th style="padding:8px;text-align:right;">Profit</th></tr></thead><tbody>';
-  body+=d.topProducts.map(p=>'<tr style="border-bottom:1px solid #eee;"><td style="padding:6px 8px;">'+p.emoji+' '+p.name+'</td><td style="padding:6px 8px;">'+p.brand+'</td><td style="padding:6px 8px;text-align:right;">'+p.qty+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;">'+rs(p.rev)+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;color:'+(p.profit>=0?'#2E7D52':'#A84232')+';">'+rs(p.profit)+'</td></tr>').join('');
+  body+=d.topProducts.map(p=>'<tr style="border-bottom:1px solid #eee;"><td style="padding:6px 8px;">'+p.emoji+' '+p.name+'</td><td style="padding:6px 8px;">'+p.brand+'</td><td style="padding:6px 8px;text-align:right;">'+p.qty+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;">'+rs(p.rev)+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;color:'+(p.profit>=0?'#1FA97A':'#D6455D')+';">'+rs(p.profit)+'</td></tr>').join('');
   body+='</tbody></table>';
 
   body+='<h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Sales Detail</h3>';
@@ -758,8 +789,8 @@ function printRecordReport(){
 
   body+='<h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Returns &amp; Defects Summary</h3>';
   body+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;margin-bottom:20px;">';
-  body+=kpiBox('Customer Returns',d.custReturnsCount,'#A84232');
-  body+=kpiBox('Refunds Paid',rs(d.totalRefunds),'#A84232');
+  body+=kpiBox('Customer Returns',d.custReturnsCount,'#D6455D');
+  body+=kpiBox('Refunds Paid',rs(d.totalRefunds),'#D6455D');
   body+=kpiBox('Defective Returns',d.defReturnsCount,'#9A6F00');
   body+=kpiBox('Loss from Defects',rs(d.totalLoss),'#9A6F00');
   body+='</div>';

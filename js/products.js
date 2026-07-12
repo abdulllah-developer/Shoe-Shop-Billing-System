@@ -31,7 +31,7 @@ function renderProducts(list){
       const remStock=Math.max(0,s.stock-(inCart?inCart.qty:0));
       return remStock>0?s.size:null;
     }).filter(Boolean):[];
-    const sizeBadges=availSizes.length>0?'<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'+availSizes.slice(0,6).map(s=>'<span style="font-family:\'DM Mono\',monospace;font-size:8px;background:var(--gold-light);color:var(--amber);padding:1px 4px;border-radius:3px;">'+s+'</span>').join('')+(availSizes.length>6?'<span style="font-size:8px;color:var(--muted);">+more</span>':'')+'</div>':'';
+    const sizeBadges=availSizes.length>0?'<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'+availSizes.slice(0,6).map(s=>'<span style="font-family:\'DM Mono\',monospace;font-size:8px;background:var(--gold-light);color:var(--amber);padding:1px 4px;border-radius:0;">'+s+'</span>').join('')+(availSizes.length>6?'<span style="font-size:8px;color:var(--muted);">+more</span>':'')+'</div>':'';
     const oos=dispStock===0;
     return '<div class="product-card '+(oos?'oos':'')+'" onclick="addToCart('+p.id+')">'+(oos?'':'<div class="p-add">+</div>')+'<span class="p-emoji">'+p.emoji+'</span><div class="p-name">'+p.name+'</div><div class="p-brand">'+p.brand+'</div><div class="p-price">'+rs(p.price)+'</div>'+sizeBadges+'<div class="p-stock '+(dispStock<=5?'low':'')+'">'+( oos?'Out of Stock':dispStock<=5?'Only '+dispStock+' left':dispStock+' pairs')+'</div></div>';
   }).join('');
@@ -56,7 +56,7 @@ function renderAdminTable(){
   let list=PRODUCTS;
   if(sq)list=list.filter(p=>(p.name+p.brand+p.cat).toLowerCase().includes(sq));
   document.getElementById('productTableBody').innerHTML=list.map(p=>{
-    const sizes=p.sizes?p.sizes.map(s=>'<span style="font-family:\'DM Mono\',monospace;font-size:9px;background:'+(s.stock===0?'var(--border)':'var(--gold-light)')+';color:'+(s.stock===0?'var(--muted)':'var(--amber)')+';padding:2px 5px;border-radius:3px;display:inline-block;margin:1px;">'+s.size+':'+(s.stock===0?'✗':s.stock)+'</span>').join(''):'<span style="color:var(--muted);font-size:10px;">No sizes</span>';
+    const sizes=p.sizes?p.sizes.map(s=>'<span style="font-family:\'DM Mono\',monospace;font-size:9px;background:'+(s.stock===0?'var(--border)':'var(--gold-light)')+';color:'+(s.stock===0?'var(--muted)':'var(--amber)')+';padding:2px 5px;border-radius:0;display:inline-block;margin:1px;">'+s.size+':'+(s.stock===0?'✗':s.stock)+'</span>').join(''):'<span style="color:var(--muted);font-size:10px;">No sizes</span>';
     const actBtns=isAdmin()?'<div class="act-btns"><button class="btn-ed" onclick="openEditModal('+p.id+')">✏️ Edit</button><button class="btn-dl" onclick="deleteProduct('+p.id+')">🗑 Delete</button></div>':'<span style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--muted);">View only</span>';
     return '<tr><td class="td-em">'+p.emoji+'</td><td class="td-name">'+p.name+'</td><td>'+p.brand+'</td><td><span class="badge">'+p.cat+'</span></td><td class="td-mono">'+rs(p.price)+'</td><td class="td-mono" style="color:var(--muted);">'+( p.cost?rs(p.cost):'—')+'</td><td style="max-width:180px;">'+sizes+'</td><td class="td-stk '+(p.stock<=5?'low':'')+'">'+(  p.stock===0?'OUT':p.stock)+'</td><td>'+actBtns+'</td></tr>';
   }).join('');
@@ -103,7 +103,7 @@ function renderSizeRows(){
     <div style="display:grid;grid-template-columns:1fr 1fr 40px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;">
       <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;">Size ${s.size}</div>
       <input type="number" min="0" value="${s.stock}" onchange="updateSizeStock(${i},this.value)" oninput="updateSizeStock(${i},this.value)"
-        style="padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;">
+        style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;">
       <button onclick="removeSizeRow(${i})" style="background:none;border:none;color:var(--rust);cursor:pointer;font-size:16px;padding:0;text-align:center;">✕</button>
     </div>`).join('');
   const total=modalSizes.reduce((s,r)=>s+(parseInt(r.stock)||0),0);
@@ -205,7 +205,7 @@ function openSizePicker(id){
   document.getElementById('sizePickerGrid').innerHTML=prod.sizes.map(s=>{
     const oos=s.stock<=0;
     const clr=oos?'var(--muted)':s.stock<=3?'var(--rust)':'var(--muted)';
-    return '<button onclick="pickSize(\''+s.size+'\')" '+(oos?'disabled':'')+' style="padding:10px 6px;border-radius:8px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:600;border:2px solid '+(oos?'var(--border)':'var(--border)')+';background:'+(oos?'var(--bg)':'var(--card)')+';color:'+(oos?'var(--muted)':'var(--text)')+';cursor:'+(oos?'not-allowed':'pointer')+';transition:all 0.15s;text-align:center;opacity:'+(oos?'0.55':'1')+';"><div>'+s.size+'</div><div style="font-size:9px;color:'+clr+';margin-top:2px;font-weight:400;">'+(oos?'Out':s.stock+' left')+'</div></button>';
+    return '<button onclick="pickSize(\''+s.size+'\')" '+(oos?'disabled':'')+' style="padding:10px 6px;border-radius:0;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:600;border:2px solid '+(oos?'var(--border)':'var(--border)')+';background:'+(oos?'var(--bg)':'var(--card)')+';color:'+(oos?'var(--muted)':'var(--text)')+';cursor:'+(oos?'not-allowed':'pointer')+';transition:all 0.15s;text-align:center;opacity:'+(oos?'0.55':'1')+';"><div>'+s.size+'</div><div style="font-size:9px;color:'+clr+';margin-top:2px;font-weight:400;">'+(oos?'Out':s.stock+' left')+'</div></button>';
   }).join('');
   document.getElementById('sizePickerModal').classList.add('show');
 }
@@ -362,7 +362,7 @@ async function confirmImport(){
   if(dbOnline){
     // Delete all from Supabase in one shot using not-null filter on id
     try{
-      await fetch(SUPA_URL+'/rest/v1/products?id=gte.0',{method:'DELETE',headers:SB_HDR});
+      await fetch(SUPA_URL+'/rest/v1/products?id=gte.0',{method:'DELETE',headers:currentAuthHeaders()});
     }catch(e){
       // fallback: delete one by one
       for(const p of PRODUCTS){if(p._sid)await sbDeleteOne('products',p._sid);}
