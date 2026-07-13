@@ -1,0 +1,220 @@
+/* ══════════════════════════════════════════════════════════
+   AT SERVIS SHOE — Billing System
+   components.css — Reusable UI components: inner page shell,
+   KPI cards, data tables, sales/returns widgets, modals,
+   printable receipt card, expense bars, toast, and the
+   mobile bottom navigation component.
+   ══════════════════════════════════════════════════════════ */
+
+/* ══ INNER PAGES ══ */
+.inner{padding:16px;max-width:1100px;margin:0 auto;}
+.inner-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.inner-ttl{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:22px;font-weight:700;}
+.inner-ttl small{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);font-weight:400;display:block;margin-top:2px;}
+.action-btn{background:var(--amber);color:#fff;border:none;padding:8px 16px;border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.3px;cursor:pointer;transition:all 0.15s;}
+.action-btn:hover{background:#4A79B0;}
+
+/* DATE RANGE PICKER */
+.date-range-picker{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:0;padding:7px 12px;box-shadow:var(--shadow-sm);}
+.drp-icon{font-size:13px;flex-shrink:0;}
+.drp-input{border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;cursor:pointer;}
+.drp-sep{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:0;padding:14px;box-shadow:var(--shadow-sm);}
+.kpi-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.kpi-val{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:20px;font-weight:700;color:var(--text);}
+.kpi-val.gold{color:var(--amber);}
+.kpi-val.green{color:var(--green);}
+.kpi-val.red{color:var(--rust);}
+
+/* CARD WITH HEADER BAND (matches reference: solid color title bar + white body) */
+.card-band{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.card-band-hdr{background:var(--amber);color:#fff;padding:12px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;}
+.card-band-body{padding:18px;}
+
+/* DATA TABLE */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:0;overflow:hidden;box-shadow:var(--shadow-sm);overflow-x:auto;}
+.data-tbl{width:100%;border-collapse:collapse;min-width:600px;}
+.data-tbl thead tr{background:var(--surface2);}
+.data-tbl th{padding:11px 14px;text-align:left;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;letter-spacing:0.3px;font-weight:600;color:var(--text);text-transform:none;white-space:nowrap;}
+.data-tbl td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+.data-tbl tbody tr:last-child td{border-bottom:none;}
+.data-tbl tbody tr:hover td{background:var(--row-hover);}
+.td-em{font-size:18px;}
+.td-name{font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;}
+.td-mono{font-family:'DM Mono',monospace;color:var(--amber);}
+.td-stk{font-family:'DM Mono',monospace;}
+.td-stk.low{color:var(--rust);font-weight:600;}
+.badge{font-size:10px;background:var(--gold-light);color:var(--amber);padding:2px 8px;border-radius:0;font-family:'DM Mono',monospace;font-weight:500;}
+.badge.green{background:var(--green-light);color:var(--green);}
+.badge.red{background:var(--rust-light);color:var(--rust);}
+.act-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.btn-ed,.btn-dl{padding:4px 10px;border-radius:0;font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;border:none;transition:all 0.18s;}
+.btn-ed{background:var(--gold-light);color:var(--amber);border:1px solid #e8d5a8;}
+.btn-ed:hover{background:var(--gold);color:#fff;}
+.btn-dl{background:var(--rust-light);color:var(--rust);border:1px solid #f0c4b8;}
+.btn-dl:hover{background:var(--rust);color:#fff;}
+
+/* SALES */
+.sales-grid{display:grid;grid-template-columns:1fr;gap:20px;}
+.sec-ttl{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.chart-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.bar-month{font-family:'DM Mono',monospace;font-size:9px;width:28px;text-align:right;color:var(--muted);flex-shrink:0;}
+.bar-tracks{flex:1;display:flex;flex-direction:column;gap:2px;}
+.bar-bg{background:#EEE9E2;border-radius:0;height:9px;overflow:hidden;}
+.bar-fg{height:100%;border-radius:0;transition:width 0.5s ease;}
+.bar-fg.rev{background:var(--gold);}
+.bar-fg.prf{background:var(--green);}
+.bar-nums{font-family:'DM Mono',monospace;font-size:9px;width:90px;text-align:right;flex-shrink:0;line-height:1.6;}
+.s-full{grid-column:1/-1;}
+.filter-strip{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.filter-strip select{padding:7px 10px;border:1.5px solid var(--border);border-radius:0;font-family:'DM Mono',monospace;font-size:11px;background:var(--card);color:var(--text);outline:none;cursor:pointer;}
+.pill{display:inline-block;font-size:9px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:0;font-weight:500;}
+.pill-cash{background:var(--amber-light);color:var(--amber);}
+.pill-ep{background:var(--green-light);color:var(--green);}
+.pill-jc{background:var(--rust-light);color:var(--rust);}
+.pill-bank{background:var(--blue-light);color:var(--blue);}
+.p-pos{color:var(--green);font-family:'DM Mono',monospace;}
+.p-neg{color:var(--rust);font-family:'DM Mono',monospace;}
+.empty-state{text-align:center;padding:30px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;}
+
+/* RETURNS */
+.returns-layout{display:flex;flex-direction:column;}
+.ret-form{padding:16px;background:var(--card);border-bottom:1px solid var(--border);}
+.ret-hist{padding:16px;background:var(--bg);}
+.ret-toggle{display:flex;border:1.5px solid var(--border);border-radius:0;overflow:hidden;margin-bottom:16px;}
+.rt-btn{flex:1;padding:10px;border:none;background:transparent;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;color:var(--muted);}
+.rt-btn.act-cust{background:var(--rust-light);color:var(--rust);font-weight:600;}
+.rt-btn.act-deft{background:var(--amber-light);color:var(--amber);font-weight:600;}
+.rt-div{width:1px;background:var(--border);}
+.ret-form-ttl{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:17px;font-weight:700;margin-bottom:3px;}
+.ret-form-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.rf-grp{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.rf-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.rf-inp{padding:9px 12px;border:1.5px solid var(--border);border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:var(--text);background:var(--card);outline:none;transition:border-color 0.18s;width:100%;}
+.rf-inp:focus{border-color:var(--gold);}
+.rf-inp::placeholder{color:var(--muted);}
+.rf-sel{padding:9px 12px;border:1.5px solid var(--border);border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:var(--text);background:var(--card);outline:none;width:100%;cursor:pointer;}
+.rf-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.ret-items-box{border:1.5px solid var(--border);border-radius:0;overflow:hidden;margin-bottom:10px;}
+.ret-items-hdr{background:var(--amber);color:#fff;padding:8px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;}
+.ret-item-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);}
+.ret-item-row:last-child{border-bottom:none;}
+.ri-emoji{font-size:18px;flex-shrink:0;}
+.ri-info{flex:1;min-width:0;}
+.ri-name{font-size:12px;font-weight:600;}
+.ri-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.ret-qty-inp{width:50px;padding:5px 7px;border:1.5px solid var(--border);border-radius:0;font-family:'DM Mono',monospace;font-size:12px;text-align:center;outline:none;}
+.ret-qty-inp:focus{border-color:var(--gold);}
+.ret-summary{background:var(--bg);border:1px solid var(--border);border-radius:0;padding:10px 13px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:12px;}
+.rs-row{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--muted);}
+.rs-row.rs-total{font-size:13px;font-weight:700;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);margin-bottom:0;}
+.btn-ret{width:100%;padding:11px;border-radius:0;border:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-ret.cust{background:var(--rust);color:#fff;}
+.btn-ret.deft{background:var(--amber);color:#fff;}
+.lookup-result{background:var(--green-light);border:1.5px solid var(--green);border-radius:0;padding:10px;margin-bottom:12px;display:none;}
+.lookup-result.show{display:block;}
+.lr-ttl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--green);margin-bottom:4px;text-transform:uppercase;}
+.ret-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:16px;}
+.rk{background:var(--card);border:1px solid var(--border);border-radius:0;padding:11px 13px;box-shadow:var(--shadow-sm);}
+.rk-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.rk-val{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:20px;font-weight:700;}
+.rk-val.red{color:var(--rust);}
+.rk-val.amb{color:var(--amber);}
+.hist-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.ht{padding:5px 12px;border:1.5px solid var(--border);border-radius:0;font-size:10px;cursor:pointer;background:var(--card);color:var(--muted);transition:all 0.18s;font-family:'DM Mono',monospace;}
+.ht.active{background:var(--amber);color:#fff;border-color:var(--amber);}
+.pill-cr{background:var(--rust-light);color:var(--rust);}
+.pill-df{background:var(--amber-light);color:var(--amber);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,13,11,0.7);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-bg.show{display:flex;}
+.modal-card{background:var(--card);border-radius:0;width:460px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;margin:8px;}
+@keyframes popIn{from{transform:scale(0.95) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-top{background:var(--amber);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-radius:0;position:sticky;top:0;z-index:1;}
+.modal-ttl{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:700;}
+.modal-x{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;transition:color 0.15s;}
+.modal-x:hover{color:#fff;}
+.modal-body{padding:20px;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.f-grp{display:flex;flex-direction:column;gap:4px;}
+.f-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.f-inp{padding:9px 12px;border:1.5px solid var(--border);border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:var(--text);background:var(--card);outline:none;transition:border-color 0.18s;}
+.f-inp:focus{border-color:var(--gold);}
+.emoji-auto{font-size:26px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:0;background:var(--gold-light);border:1.5px solid var(--gold);margin-top:4px;}
+.cat-chip{padding:4px 10px;border:1px solid var(--border);border-radius:0;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;background:var(--bg);color:var(--muted);}
+.cat-chip:hover{border-color:var(--gold);color:var(--amber);}
+.modal-foot{padding:0 20px 20px;display:flex;gap:8px;}
+.btn-sv{flex:1;padding:10px;background:var(--green);color:#fff;border:none;border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.btn-sv:hover{background:#77A83F;}
+.btn-cn{padding:10px 16px;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;cursor:pointer;}
+
+/* RECEIPT */
+.rcpt-overlay{display:none;position:fixed;inset:0;background:rgba(15,13,11,0.85);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.rcpt-overlay.show{display:flex;}
+.rcpt-card{background:var(--card);color:var(--ink);width:340px;max-width:96vw;max-height:92vh;overflow-y:auto;border-radius:0;box-shadow:var(--shadow-lg);animation:popIn 0.3s ease;margin:8px;}
+.rcpt-head{background:var(--card);color:var(--ink);padding:18px 20px 14px;text-align:center;border-bottom:2px solid var(--border);}
+.rcpt-logo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:5px;}
+.rcpt-logo span{color:var(--gold);}
+.rcpt-tagline{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:5px;line-height:1.8;}
+.rcpt-body{padding:14px 18px;}
+.r-div{border:none;border-top:1px dashed #ddd;margin:9px 0;}
+.r-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:2px;}
+.r-cust{font-size:13px;font-weight:600;margin-bottom:2px;}
+.r-item-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;align-items:baseline;}
+.r-item-l{display:flex;gap:5px;}
+.r-item-q{font-family:'DM Mono',monospace;color:var(--muted);min-width:20px;}
+.r-tot-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;font-family:'DM Mono',monospace;color:var(--muted);}
+.r-grand-row{display:flex;justify-content:space-between;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:19px;font-weight:700;margin:7px 0;}
+.r-pay-line{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.rcpt-pay-info{margin-top:10px;background:#faf7f2;border:1px dashed var(--border);border-radius:0;padding:10px 12px;}
+.rpi-ttl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;text-align:center;padding-bottom:5px;border-bottom:1px dashed var(--border);}
+.rpi-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;gap:8px;}
+.rpi-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;flex-shrink:0;}
+.rpi-jc{color:#c0392b;}.rpi-ep{color:#1a7a4a;}.rpi-bk{color:#2253A0;}
+.rpi-val{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);text-align:right;}
+.rpi-val-blk{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);text-align:right;display:flex;flex-direction:column;line-height:1.7;}
+.rcpt-footer{text-align:center;padding:10px 18px;border-top:1px dashed #ddd;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.8;}
+.rcpt-designer{text-align:center;padding:6px 18px 14px;font-family:'DM Mono',monospace;font-size:8px;color:#ccc;letter-spacing:1px;}
+.rcpt-designer b{color:var(--gold);}
+.rcpt-actions{display:flex;gap:8px;padding:0 18px 16px;}
+.rcpt-btn{flex:1;padding:10px;border-radius:0;border:none;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:600;transition:all 0.18s;}
+.rb-print{background:var(--amber);color:#fff;}
+.rb-print:hover{background:#2d2420;}
+.rb-close{background:#FFFFFF;color:var(--ink);border:1.5px solid var(--border);}
+
+.exp-cat-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:0;font-weight:500;background:var(--gold-light);color:var(--amber);}
+.exp-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.exp-bar-label{font-size:11px;width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.exp-bar-wrap{flex:1;background:#EEE9E2;border-radius:0;height:12px;overflow:hidden;}
+.exp-bar-fill{height:100%;background:var(--rust);border-radius:0;transition:width 0.4s ease;}
+.exp-bar-val{font-family:'DM Mono',monospace;font-size:10px;width:90px;text-align:right;flex-shrink:0;color:var(--rust);}
+
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--amber);color:#fff;font-family:'DM Mono',monospace;font-size:11px;padding:9px 16px;border-radius:0;border:1px solid rgba(76,95,213,0.4);z-index:500;transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;box-shadow:var(--shadow-md);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ══ BOTTOM NAV (mobile only) ══ */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:var(--card);border-top:1px solid var(--border);
+  box-shadow:0 -4px 20px rgba(0,0,0,0.25);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bottom-nav-row{
+  display:flex;align-items:stretch;justify-content:space-around;
+  height:60px;
+}
+.bn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;border:none;background:transparent;
+  color:var(--muted);padding:0 2px;transition:color 0.18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.bn-item.active{color:var(--gold);}
+.bn-icon{font-size:20px;line-height:1;}
+.bn-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
