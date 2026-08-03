@@ -781,17 +781,11 @@ function printRecordReport(){
   body+='</table></div>';
   body+='</div>';
 
-  body+='<h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Top Selling Articles</h3>';
-  body+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;margin-bottom:20px;">';
-  body+='<thead><tr style="background:#1B2338;color:#fff;"><th style="padding:8px;text-align:left;">Article</th><th style="padding:8px;text-align:left;">Brand</th><th style="padding:8px;text-align:right;">Qty</th><th style="padding:8px;text-align:right;">Revenue</th><th style="padding:8px;text-align:right;">Profit</th></tr></thead><tbody>';
-  body+=d.topProducts.map(p=>'<tr style="border-bottom:1px solid #eee;"><td style="padding:6px 8px;">'+p.emoji+' '+p.name+'</td><td style="padding:6px 8px;">'+p.brand+'</td><td style="padding:6px 8px;text-align:right;">'+p.qty+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;">'+rs(p.rev)+'</td><td style="padding:6px 8px;text-align:right;font-family:monospace;color:'+(p.profit>=0?'#1FA97A':'#D6455D')+';">'+rs(p.profit)+'</td></tr>').join('');
-  body+='</tbody></table>';
-
   body+='<h3 style="font-size:13px;border-bottom:1px solid #ddd;padding-bottom:6px;">Sales Detail</h3>';
   body+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;margin-bottom:20px;">';
   body+='<thead><tr style="background:#1B2338;color:#fff;"><th style="padding:8px;text-align:left;">Date</th><th style="padding:8px;text-align:left;">Shoe Name</th><th style="padding:8px;text-align:left;">Payment Method</th><th style="padding:8px;text-align:right;">Price</th></tr></thead><tbody>';
   const sdPayLabelsPrint={'cash':'Cash','easypaisa':'EasyPaisa','jazzcash':'JazzCash'};
-  body+=[...d.salesInRange].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(s=>{
+  body+=[...d.salesInRange].sort((a,b)=>new Date(a.date)-new Date(b.date)).map(s=>{
     const sdDate=new Date(s.date).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'});
     const sdNames=s.items.map(i=>i.name).join(', ');
     const sdPay=sdPayLabelsPrint[s.payMethod]||s.payMethod;
