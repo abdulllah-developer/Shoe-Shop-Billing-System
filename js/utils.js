@@ -132,6 +132,34 @@ async function waqFlush(){
 // Auto-retry every 3 seconds for any queued operations
 setInterval(()=>{if(waq.length)waqFlush();},3000);
 
+// sbGetChanges — like sbGet, but only pulls rows touched since a given time.
+// Used by the polling sync so we don't re-download the whole table every check.
+async function sbGetChanges(table,sinceISO){
+  try{
+    const PAGE_SIZE=1000;
+    let all=[];
+    let from=0;
+    while(true){
+      const to=from+PAGE_SIZE-1;
+      const r=await fetch(SUPA_URL+'/rest/v1/'+table+'?select=*&order=id.asc&updated_at=gt.'+encodeURIComponent(sinceISO),{
+        headers:{...currentAuthHeaders(),'Range':from+'-'+to,'Range-Unit':'items'}
+      });
+      if(r.status===401||r.status===403){handlePossibleSessionExpiry();return null;}
+      const rows=await r.json();
+      if(!Array.isArray(rows))break;
+      all=all.concat(rows);
+      if(rows.length<PAGE_SIZE)break;
+      from+=PAGE_SIZE;
+    }
+    return all.map(row=>{
+      const item={...row.data,_sid:row.id};
+      if(table==='products'&&row.sizes){item.sizes=row.sizes;}
+      item._updatedAt=row.updated_at;
+      return item;
+    });
+  }catch(e){console.error('sbGetChanges',table,e);return null;}
+}
+
 async function sbGet(table){
   try{
     const PAGE_SIZE=1000; // pull in pages so we never hit PostgREST's default row cap
