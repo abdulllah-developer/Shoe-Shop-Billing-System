@@ -8,8 +8,8 @@
    other functions defined in the other script files.
    ══════════════════════════════════════════════════════════ */
 
-// ── REAL-TIME SYNC (20 seconds — only pulls rows that changed) ──
-// Checks every 20 seconds. Instead of re-downloading everything, it only
+// ── REAL-TIME SYNC (5 seconds — only pulls rows that changed) ──
+// Checks every 5 seconds. Instead of re-downloading everything, it only
 // asks Supabase for rows touched since the last check — much lighter on data usage.
 let rtPollInterval=null;
 let rtFullRefreshInterval=null;
@@ -77,7 +77,7 @@ function startRealtimeSync(){
       if((salesChanged||expensesChanged)&&ap&&ap.id==='page-sales'){renderKpiCards();}
 
     }catch(e){}
-  },20000);
+  },5000);
 
   // Safety net: every 5 minutes, do one FULL refresh (not just changes).
   // This catches deletions — a deleted row can't show up in "what changed",
